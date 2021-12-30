@@ -1,5 +1,6 @@
 version: '3.9'
 
+# &设置锚点 https://stackoverflow.com/questions/46641224/what-is-and-in-yaml-mean  https://learnxinyminutes.com/docs/yaml/
 x-kong-config: &kong-env
   KONG_DATABASE: ${KONG_DATABASE:-off}
   KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
@@ -30,6 +31,7 @@ services:
     depends_on:
       - db
     environment:
+      # <<:* 代表引用
       <<: *kong-env
     secrets:
       - kong_postgres_password
@@ -94,7 +96,8 @@ services:
       - ./config:/opt/kong
     security_opt:
       - no-new-privileges
-
+    depends_on:
+      - db
   db:
     image: postgres:9.5
     profiles: ["database"]
@@ -112,11 +115,39 @@ services:
     restart: on-failure
     stdin_open: true
     tty: true
+    ports:
+      - "5432:5432"
     networks:
       - kong-net
     volumes:
       - kong_data:/var/lib/postgresql/data
-
+  konga-prepare:
+    image: pantsel/konga:latest
+    profiles: ["database"]
+    command: "-c prepare -a postgres -u postgresql://kong:kong@db:5432/konga"  #注意是用户名：密码@数据库服务名称：端口
+    networks:
+      - kong-net
+    restart: on-failure
+    depends_on:
+      - kong        #依赖kong服务
+      - db #依赖db服务
+  konga:
+    image: pantsel/konga
+    profiles: ["database"]
+    environment:
+      DB_HOST: ${KONG_PG_HOST:-db}
+      DB_PORT: ${KONG_PG_PORT:-5432}
+      DB_USER: ${KONG_PG_USER:-kong}
+      DB_PASSWORD: ${KONG_PG_PASSWORD:-kong}
+      DB_DATABASE: ${KONGA_DATABASE:-konga}
+      NODE_ENV: ${NODE_ENV:-production}
+    networks:
+      - kong-net
+    ports:
+      - "1337:1337"
+    depends_on:
+      - kong        #依赖kong服务
+      - db #依赖db服务
 secrets:
   kong_postgres_password:
     file: ./POSTGRES_PASSWORD
