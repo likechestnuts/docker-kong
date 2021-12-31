@@ -11,8 +11,8 @@ x-kong-config: &kong-env
 volumes:
   postgres_data:
     driver_opts:
-      type: volume
-      device: "/data/docker"
+      type: nfs
+      device: ":/data/docker"
   kong_prefix_vol:
     driver_opts:
      type: tmpfs
