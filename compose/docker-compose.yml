@@ -13,8 +13,8 @@ volumes:
   # 1.{}代表空对象 docker会创建一个命名卷为/var/lib/docker/volumes/compose_postgres_data
   # postgres_data: {}
   # 2.下面的参数会把 命名卷和主机卷放在一起，则要查找的是配置为使用绑定(bind)安装的命名卷。
-  #如果目录不存在，这样做的缺点是失败，但另一方面，docker可以将空目录初始化为镜像内容。
-  #/var/lib/docker/volumes/compose_postgres_data 绑定到 /data/docker/postgres文件夹中
+  # 如果目录不存在，这样做的缺点是失败，但另一方面，docker可以将空目录初始化为镜像内容(经实验，不会保留数据到镜像中)。
+  # /var/lib/docker/volumes/compose_postgres_data 绑定到 /data/docker/postgres文件夹中
   postgres_data:
     driver: local
     driver_opts:
@@ -115,8 +115,7 @@ services:
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
       POSTGRES_USER: ${KONG_PG_USER:-kong}
-      # POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kong}
+      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
       PGDATA: /var/lib/postgresql/data/pgdata
     secrets:
       - kong_postgres_password
