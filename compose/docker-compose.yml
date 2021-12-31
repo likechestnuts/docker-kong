@@ -115,7 +115,8 @@ services:
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
       POSTGRES_USER: ${KONG_PG_USER:-kong}
-      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
+      # POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kong}
       PGDATA: /var/lib/postgresql/data/pgdata
     secrets:
       - kong_postgres_password
