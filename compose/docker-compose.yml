@@ -9,6 +9,12 @@ x-kong-config: &kong-env
   KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
 
 volumes:
+  # 命名卷 很复杂
+  # 1.{}代表空对象 docker会创建一个命名卷为/var/lib/docker/volumes/compose_postgres_data
+  # postgres_data: {}
+  # 2.下面的参数会把 命名卷和主机卷放在一起，则要查找的是配置为使用绑定(bind)安装的命名卷。
+  #如果目录不存在，这样做的缺点是失败，但另一方面，docker可以将空目录初始化为镜像内容。
+  #/var/lib/docker/volumes/compose_postgres_data 绑定到 /data/docker/postgres文件夹中
   postgres_data:
     driver: local
     driver_opts:
@@ -59,7 +65,7 @@ services:
     restart: on-failure
 
   kong:
-    platform: linux/arm64
+    # platform: linux/arm64
     image: "${KONG_DOCKER_TAG:-kong:latest}"
     user: "${KONG_USER:-kong}"
     environment:
