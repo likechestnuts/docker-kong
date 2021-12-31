@@ -52,7 +52,7 @@ services:
 
   kong-migrations-up:
     image: "${KONG_DOCKER_TAG:-kong:latest}"
-    command: kong migrations up && kong migrations finish
+    command: kong migrations bootstrap
     profiles: ["database"]
     depends_on:
       - db
