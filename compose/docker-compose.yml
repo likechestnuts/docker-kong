@@ -9,7 +9,10 @@ x-kong-config: &kong-env
   KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
 
 volumes:
-  kong_data: {}
+  postgres_data:
+    driver_opts:
+      type: volume
+      device: "/data/docker"
   kong_prefix_vol:
     driver_opts:
      type: tmpfs
@@ -105,6 +108,7 @@ services:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
       POSTGRES_USER: ${KONG_PG_USER:-kong}
       POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
+      PGDATA: /var/lib/postgresql/data/pgdata
     secrets:
       - kong_postgres_password
     healthcheck:
@@ -120,7 +124,7 @@ services:
     networks:
       - kong-net
     volumes:
-      - kong_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
   konga-prepare:
     image: pantsel/konga:latest
     profiles: ["database"]
