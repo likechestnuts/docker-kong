@@ -37,7 +37,7 @@ networks:
 
 services:
   db:
-    image: postgres:9.5
+    image: postgres:9.6
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
       POSTGRES_USER: ${KONG_PG_USER:-kong}
@@ -71,21 +71,6 @@ services:
     networks:
       - kong-net
     restart: on-failure
-
-  # kong-migrations-up:
-  #   image: "${KONG_DOCKER_TAG:-kong:latest}"
-  #   command: kong migrations up && kong migrations finish
-  #   profiles: ["database"]
-  #   depends_on:
-  #     - db
-  #   environment:
-  #     <<: *kong-env
-  #   secrets:
-  #     - kong_postgres_password
-  #   networks:
-  #     - kong-net
-  #   restart: on-failure
-
   kong-1:
     # platform: linux/arm64
     image: "${KONG_DOCKER_TAG:-kong:latest}"
