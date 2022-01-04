@@ -35,21 +35,30 @@ networks:
     external: false
 
 services:
-  kong-migrations:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
-    command: kong migrations bootstrap
+  db:
+    image: postgres:9.5
     profiles: ["database"]
-    depends_on:
-      - db
     environment:
-      # <<:* 代表引用
-      <<: *kong-env
+      POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
+      POSTGRES_USER: ${KONG_PG_USER:-kong}
+      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
+      PGDATA: /var/lib/postgresql/data/pgdata
     secrets:
       - kong_postgres_password
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: on-failure
+    stdin_open: true
+    tty: true
+    ports:
+      - "5432:5432"
     networks:
       - kong-net
-    restart: on-failure
-
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
   kong-migrations-up:
     image: "${KONG_DOCKER_TAG:-kong:latest}"
     command: kong migrations bootstrap
@@ -109,30 +118,6 @@ services:
       - no-new-privileges
     depends_on:
       - db
-  db:
-    image: postgres:9.5
-    profiles: ["database"]
-    environment:
-      POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
-      POSTGRES_USER: ${KONG_PG_USER:-kong}
-      POSTGRES_PASSWORD_FILE: /run/secrets/kong_postgres_password
-      PGDATA: /var/lib/postgresql/data/pgdata
-    secrets:
-      - kong_postgres_password
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER:-kong}"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    restart: on-failure
-    stdin_open: true
-    tty: true
-    ports:
-      - "5432:5432"
-    networks:
-      - kong-net
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
   konga-prepare:
     image: pantsel/konga:latest
     profiles: ["database"]
