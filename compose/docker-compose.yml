@@ -3,7 +3,7 @@ version: '3.9'
 # &设置锚点 https://stackoverflow.com/questions/46641224/what-is-and-in-yaml-mean  https://learnxinyminutes.com/docs/yaml/
 x-kong-config:
   &kong-env
-  KONG_DATABASE: ${KONG_DATABASE:-off}
+  KONG_DATABASE: ${KONG_DATABASE:-postgres}
   KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
   KONG_PG_HOST: db
   KONG_PG_USER: ${KONG_PG_USER:-kong}
@@ -38,7 +38,6 @@ networks:
 services:
   db:
     image: postgres:9.5
-    profiles: [ "database" ]
     environment:
       POSTGRES_DB: ${KONG_PG_DATABASE:-kong}
       POSTGRES_USER: ${KONG_PG_USER:-kong}
@@ -63,7 +62,6 @@ services:
   kong-migrations:
     image: "${KONG_DOCKER_TAG:-kong:latest}"
     command: kong migrations bootstrap
-    profiles: [ "database" ]
     depends_on:
       - db
     environment:
@@ -164,17 +162,14 @@ services:
       - db
   konga-prepare:
     image: pantsel/konga:latest
-    profiles: [ "database" ]
     command: "-c prepare -a postgres -u postgresql://kong:kong@db:5432/konga" #注意是用户名：密码@数据库服务名称：端口
     networks:
       - kong-net
     restart: on-failure
     depends_on:
-      - kong #依赖kong服务
       - db #依赖db服务
   konga:
     image: pantsel/konga
-    profiles: [ "database" ]
     environment:
       DB_HOST: ${KONG_PG_HOST:-db}
       DB_PORT: ${KONG_PG_PORT:-5432}
@@ -187,7 +182,6 @@ services:
     ports:
       - "1337:1337"
     depends_on:
-      - kong #依赖kong服务
       - db #依赖db服务
 secrets:
   kong_postgres_password:
