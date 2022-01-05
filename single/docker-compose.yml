@@ -73,7 +73,7 @@ services:
     restart: on-failure
   kong:
     # platform: linux/arm64
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
+    image: "${KONG_DOCKER_TAG:-kong-gateway:latest}"
     user: "${KONG_USER:-kong}"
     environment:
       <<: *kong-env
@@ -99,11 +99,13 @@ services:
       timeout: 10s
       retries: 10
     restart: on-failure:5
+    # 只读 无法进行拷贝等操作
     read_only: true
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
       - /home/docker/kong:/etc/kong
+      - /home/docker/kong/dev:/dev/
     security_opt:
       - no-new-privileges
     depends_on:
