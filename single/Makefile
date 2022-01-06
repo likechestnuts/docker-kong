@@ -1,4 +1,4 @@
-kong-postgres:
+up:
 	 docker-compose up -d
 
 clean:
