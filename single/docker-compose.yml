@@ -100,7 +100,7 @@ services:
       retries: 10
     restart: on-failure:5
     # 只读 无法进行拷贝等操作
-    read_only: true
+    # read_only: true
     volumes:
       - kong_prefix_vol:${KONG_PREFIX:-/var/run/kong}
       - kong_tmp_vol:/tmp
